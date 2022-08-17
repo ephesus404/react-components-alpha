@@ -1,6 +1,6 @@
-import React, { forwardRef, ReactNode, ForwardedRef } from "react";
+import React, { forwardRef, ForwardedRef } from "react";
 
-import "./Button.css";
+import styles from "./Button.module.scss";
 import { ButtonProps } from "./Button.types";
 
 export type Ref = HTMLButtonElement;
@@ -9,7 +9,7 @@ const ButtonBase = (
   props: ButtonProps,
   ref: ForwardedRef<HTMLButtonElement>
 ) => (
-  <button ref={ref} className="button" type={props.type}>
+  <button ref={ref} className={styles.button} type={props.type}>
     {props.children}
   </button>
 );

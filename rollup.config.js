@@ -1,22 +1,26 @@
+import path from "path";
+
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
-import typescript from "@rollup/plugin-typescript";
+import esbuild from "rollup-plugin-esbuild";
 import { terser } from "rollup-plugin-terser";
-import external from "rollup-plugin-peer-deps-external";
+import peerDepsExternal from "rollup-plugin-peer-deps-external";
 import postcss from "rollup-plugin-postcss";
 import dts from "rollup-plugin-dts";
+import svgr from "@svgr/rollup";
+
+import autoprefixer from "autoprefixer";
 
 const packageJson = require("./package.json");
 
 export default [
   {
-    input: "packages/index.ts",
+    input: "src/index.ts",
     output: [
       {
         file: packageJson.main,
         format: "cjs",
         sourcemap: true,
-        name: "react-ts-lib",
       },
       {
         file: packageJson.module,
@@ -25,17 +29,33 @@ export default [
       },
     ],
     plugins: [
-      external(),
+      peerDepsExternal(),
+      esbuild({
+        sourceMap: false,
+        // minify: process.env.NODE_ENV === 'production',
+        jsx: "transform", // default, or 'preserve'
+        jsxFactory: "React.createElement",
+        jsxFragment: "React.Fragment",
+        tsconfig: path.resolve(process.cwd(), "tsconfig.json"),
+      }),
       resolve(),
+      svgr(),
       commonjs(),
-      typescript({ tsconfig: "./tsconfig.json" }),
-      postcss(),
+      postcss({
+        plugins: [autoprefixer()],
+        autoModules: true,
+        extensions: [".css", ".scss"],
+        minimize: true,
+        inject: {
+          insertAt: "top",
+        },
+      }),
       terser(),
     ],
   },
   {
-    input: "dist/esm/index.d.ts",
-    output: [{ file: "dist/index.d.ts", format: "esm" }],
+    input: "src/index.ts",
+    output: [{ file: "lib/index.d.ts", format: "esm" }],
     external: [/\.css$/],
     plugins: [dts()],
   },
